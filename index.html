@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>ClearVault - Secure Data Wiping</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{
+            --bg:#0f1113;
+            --panel:#13161a;
+            --panel-2:#181c21;
+            --text:#e6e8eb;
+            --muted:#9aa3ad;
+            --border:rgba(255,255,255,.06);
+            --shadow:0 10px 24px rgba(0,0,0,.35), 0 2px 8px rgba(0,0,0,.35);
+            --radius:16px;
+            --radius-sm:12px;
+            --accent-1:#7a5cff; /* purple */
+            --accent-2:#20c6b7; /* teal */
+            --gradient:linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            --success:#4ade80;
+            --warning:#f59e0b;
+            --danger:#ef4444;
+        }
+
+        *{box-sizing:border-box}
+        html,body{height:100%}
+        body{
+            margin:0;
+            font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+            color:var(--text);
+            background:linear-gradient(180deg, #0d0f12, #0b0c0f 40%, #0d0f12 100%);
+        }
+
+        .app{max-width:1120px;margin:0 auto;padding:28px 20px}
+
+        .app__header{
+            display:flex;align-items:center;justify-content:space-between;
+            background:var(--panel);
+            border:1px solid var(--border);
+            padding:14px 18px;border-radius:var(--radius);
+            box-shadow:var(--shadow);
+        }
+        .header__right{display:flex;align-items:center;gap:12px}
+        .brand{display:flex;gap:12px;align-items:center}
+        .brand__logo{font-size:22px;filter:grayscale(30%)}
+        .brand__title{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
+        .brand__subtitle{margin:0;color:var(--muted);font-size:12px}
+        .settings{background:transparent;border:1px solid var(--border);color:var(--muted);padding:8px;border-radius:12px;cursor:pointer}
+        .settings:hover{color:var(--text);border-color:#232832;background:#14181d}
+
+        .app__content{margin-top:22px}
+
+        /* Security Options for Basic Mode */
+        .security-options{margin-top:18px}
+        .security-option{
+            background:var(--panel);border:1px solid var(--border);
+            border-radius:var(--radius);margin-bottom:12px;padding:18px;
+            cursor:pointer;transition:all 0.2s ease;position:relative;
+            box-shadow:var(--shadow);
+        }
+        .security-option:hover{transform:translateY(-1px);border-color:#2a3038}
+        .security-option.selected{border-color:var(--accent-1);background:rgba(122,92,255,.05)}
+        
+        .security-header{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+        .security-level{
+            display:inline-flex;align-items:center;gap:6px;
+            padding:4px 8px;border-radius:6px;font-size:11px;font-weight:600;
+            text-transform:uppercase;letter-spacing:.5px;
+        }
+        .security-level--basic{background:rgba(74,222,128,.15);color:#4ade80}
+        .security-level--professional{background:rgba(245,158,11,.15);color:#f59e0b}
+        .security-level--enterprise{background:rgba(239,68,68,.15);color:#ef4444}
+        
+        .security-title{font-size:16px;font-weight:600;margin:0}
+        .security-details{display:grid;grid-template-columns:repeat(auto-fit, minmax(200px, 1fr));gap:12px;margin-top:12px}
+        .security-detail{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--muted)}
+        .security-detail__icon{font-size:14px}
+        
+        .radio-input{position:absolute;top:18px;right:18px}
+        .radio-input input[type="radio"]{width:18px;height:18px;accent-color:var(--accent-1)}
+
+        /* Top action cards */
+        .actions{display:grid;grid-template-columns:1fr;gap:16px;margin-bottom:20px}
+        .action-card{
+            display:flex;align-items:center;gap:14px;position:relative;
+            width:100%;padding:18px 18px;border-radius:var(--radius);
+            background:var(--panel-2);border:1px solid var(--border);
+            color:var(--text);text-align:left;cursor:pointer;box-shadow:var(--shadow);
+        }
+        .action-card strong{display:block;font-size:16px}
+        .action-card small{display:block;color:var(--muted);margin-top:2px}
+        .action-card__icon{display:grid;place-items:center;width:44px;height:44px;border-radius:12px;color:white}
+        .action-card--primary .action-card__icon{background:radial-gradient(100% 100% at 20% 0%, #8b73ff 0%, #6a4dff 60%, #533bff 100%)}
+        .action-card--secondary .action-card__icon{background:radial-gradient(100% 100% at 20% 0%, #28d8c8 0%, #1bb7aa 60%, #129b91 100%)}
+        .action-card__chev{position:absolute;right:16px;font-size:18px;color:var(--muted)}
+        .action-card:hover{transform:translateY(-1px);transition:transform .15s ease, box-shadow .15s ease}
+
+        /* Option cards */
+        .cards{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:18px}
+        .card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+        .card__head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+        .card__icon{font-size:18px;filter:grayscale(20%)}
+        .card h2{font-size:15px;margin:0}
+        .checklist{list-style:none;margin:8px 0 0 0;padding:0;display:grid;gap:8px}
+        .checklist label{display:flex;gap:10px;align-items:center;color:#cfd5dc}
+        .checklist input[type="checkbox"]{accent-color:#8a76ff;width:16px;height:16px;border-radius:4px}
+
+        /* Certificate and CTA */
+        .certificate{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:20px;background:var(--panel-2);border:1px solid var(--border);padding:16px;border-radius:var(--radius);box-shadow:var(--shadow)}
+        .certificate__status{display:flex;align-items:center;gap:12px}
+        .badge{display:grid;place-items:center;width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,#2c3138,#1e232a);border:1px solid var(--border);color:#9fd5cc}
+        .certificate__title{margin:0;font-weight:600}
+        .certificate__desc{margin:2px 0 0 0;color:var(--muted);font-size:12px}
+
+        .cta{appearance:none;border:0;padding:14px 22px;border-radius:999px;color:white;font-weight:700;letter-spacing:.2px;background:var(--gradient);box-shadow:0 12px 24px rgba(122,92,255,.25), 0 8px 18px rgba(32,198,183,.18);cursor:pointer}
+        .cta:hover{filter:brightness(1.06)}
+
+        /* Trust Score */
+        .trust-score{display:flex;align-items:center;gap:8px;background:var(--panel-2);padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border)}
+        .trust-score__icon{font-size:16px}
+        .trust-score__value{font-weight:700;color:var(--accent-2)}
+
+        /* Device Info */
+        .device-info{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-top:16px;box-shadow:var(--shadow)}
+        .device-info__content{display:flex;justify-content:space-between;align-items:center;gap:20px}
+        .device-info h3{margin:0;font-size:16px;font-weight:600}
+        .device-info__os{margin:4px 0 0 0;color:var(--muted);font-size:13px}
+        .device-info__storage{display:flex;flex-direction:column;align-items:flex-end;gap:8px;min-width:200px}
+        .storage-bar{width:100%;height:8px;background:var(--panel-2);border-radius:4px;overflow:hidden}
+        .storage-bar__fill{height:100%;background:var(--gradient);border-radius:4px;transition:width 0.3s ease}
+        .storage-text{font-size:12px;color:var(--muted)}
+
+        /* Mode Tabs */
+        .mode-tabs{display:flex;gap:4px;margin-top:16px;background:var(--panel-2);padding:4px;border-radius:var(--radius-sm);border:1px solid var(--border)}
+        .tab{flex:1;padding:10px 16px;border:none;background:transparent;color:var(--muted);border-radius:8px;cursor:pointer;font-weight:500;transition:all 0.2s ease}
+        .tab--active{background:var(--panel);color:var(--text);box-shadow:0 2px 8px rgba(0,0,0,.2)}
+
+        /* Progress Animation */
+        .progress-section{display:flex;justify-content:center;margin:40px 0}
+        .progress-container{display:flex;justify-content:center;align-items:center}
+        .circular-progress{position:relative;width:200px;height:200px}
+        .progress-ring{transform:rotate(-90deg)}
+        .progress-ring__circle{transition:stroke-dashoffset 0.3s ease}
+        .progress-ring__progress{transition:stroke-dashoffset 0.3s ease;stroke-linecap:round}
+        .progress-content{position:absolute;top:50%;left:50%;transform:translate(-50%, -50%);text-align:center}
+        .progress-icon{font-size:32px;margin-bottom:8px}
+        .progress-text{font-size:16px;font-weight:600;margin-bottom:4px}
+        .progress-stats{font-size:12px;color:var(--muted)}
+
+        /* Trust Indicators */
+        .trust-indicators{margin:20px 0}
+        .trust-badges{display:flex;gap:12px;flex-wrap:wrap}
+        .trust-badge{display:flex;align-items:center;gap:6px;background:var(--panel-2);padding:8px 12px;border-radius:var(--radius-sm);border:1px solid var(--border);font-size:12px;font-weight:500}
+        .trust-badge__icon{font-size:14px}
+
+        /* Activity Timeline */
+        .activity-timeline{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin:20px 0;box-shadow:var(--shadow)}
+        .activity-timeline h3{margin:0 0 16px 0;font-size:16px;font-weight:600}
+        .timeline{display:flex;flex-direction:column;gap:16px}
+        .timeline-item{display:flex;gap:12px;align-items:flex-start}
+        .timeline-icon{width:32px;height:32px;background:var(--panel-2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+        .timeline-content{flex:1}
+        .timeline-title{font-size:14px;font-weight:600;margin-bottom:2px}
+        .timeline-desc{font-size:12px;color:var(--muted);margin-bottom:4px}
+        .timeline-time{font-size:11px;color:var(--muted)}
+
+        /* Modal */
+        .modal{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:1000}
+        .modal__content{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);max-width:500px;width:90%;max-height:80vh;overflow-y:auto;box-shadow:0 20px 40px rgba(0,0,0,.5)}
+        .modal__header{display:flex;justify-content:space-between;align-items:center;padding:20px;border-bottom:1px solid var(--border)}
+        .modal__header h2{margin:0;font-size:18px;font-weight:600}
+        .modal__close{background:none;border:none;color:var(--muted);font-size:24px;cursor:pointer;padding:0;width:32px;height:32px;display:flex;align-items:center;justify-content:center}
+        .modal__close:hover{color:var(--text)}
+
+        /* Certificate Preview */
+        .certificate-preview{padding:20px}
+        .certificate-preview__header{text-align:center;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+        .certificate-preview__logo{font-size:32px;margin-bottom:8px}
+        .certificate-preview__title{font-size:18px;font-weight:700;margin-bottom:4px}
+        .certificate-preview__id{font-size:12px;color:var(--muted)}
+        .certificate-preview__body{display:flex;flex-direction:column;gap:12px;margin-bottom:24px}
+        .certificate-field{display:flex;justify-content:space-between;align-items:center;padding:8px 0}
+        .certificate-field label{font-weight:500;color:var(--muted)}
+        .certificate-field span{font-weight:600}
+        .signature{font-family:monospace;font-size:11px;color:var(--accent-2)}
+        .certificate-preview__footer{display:flex;gap:12px;justify-content:center}
+        .btn{appearance:none;border:1px solid var(--border);background:var(--panel-2);color:var(--text);padding:10px 16px;border-radius:8px;cursor:pointer;font-weight:500;transition:all 0.2s ease}
+        .btn--secondary:hover{background:var(--panel);border-color:#232832}
+
+        /* File Browser */
+        .file-browser {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-top: 18px;
+            box-shadow: var(--shadow);
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .file-browser-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .file-browser-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0;
+        }
+        
+        .file-browser-path {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 4px 0 0 0;
+        }
+        
+        .file-browser-controls {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .file-browser-btn {
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        
+        .file-browser-btn:hover {
+            background: var(--panel);
+            border-color: #232832;
+        }
+        
+        .file-list {
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+        
+        .file-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 6px;
+            margin-bottom: 4px;
+            cursor: pointer;
+        }
+        
+        .file-item:hover {
+            background: var(--panel-2);
+        }
+        
+        .file-item.selected {
+            background: rgba(122, 92, 255, 0.1);
+            border: 1px solid var(--accent-1);
+        }
+        
+        .file-icon {
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+        
+        .file-name {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .file-size {
+            font-size: 12px;
+            color: var(--muted);
+            margin-left: 8px;
+        }
+        
+        .file-checkbox {
+            margin-left: 8px;
+            accent-color: var(--accent-1);
+        }
+        
+        .file-browser-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .selected-count {
+            font-size: 14px;
+            color: var(--muted);
+        }
+        
+        /* Algorithm Selection */
+        .algorithm-selection {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px;
+            margin-top: 18px;
+            box-shadow: var(--shadow);
+        }
+        
+        .algorithm-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 0 0 12px 0;
+        }
+        
+        .algorithm-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 12px;
+        }
+        
+        .algorithm-option {
+            background: var(--panel-2);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px;
+            cursor: pointer;
+        }
+        
+        .algorithm-option.selected {
+            border-color: var(--accent-1);
+            background: rgba(122, 92, 255, 0.05);
+        }
+        
+        .algorithm-name {
+            font-size: 14px;
+            font-weight: 600;
+            margin: 0 0 4px 0;
+        }
+        
+        .algorithm-desc {
+            font-size: 12px;
+            color: var(--muted);
+            margin: 0;
+        }
+        
+        .algorithm-details {
+            margin-top: 8px;
+            font-size: 11px;
+            color: var(--muted);
+        }
+
+        /* Responsiveness */
+        @media (max-width: 860px){
+            .actions{grid-template-columns:1fr}
+            .cards{grid-template-columns:1fr}
+            .security-details{grid-template-columns:1fr}
+            .algorithm-options{grid-template-columns:1fr}
+        }
+        
+        /* New CSS for the three security cards */
+        .mode-content.basic-mode #btn-complete {
+            display: none; /* Hide the old button in the Basic Mode */
+        }
+
+        .mode-content.basic-mode .security-options {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 0 1.5rem 1.5rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app">
+        <header class="app__header">
+            <div class="brand">
+                <span class="brand__logo" aria-hidden="true">🔒</span>
+                <div class="brand__text">
+                    <h1 class="brand__title">ClearVault</h1>
+                    <p class="brand__subtitle">Enterprise‑Grade Data Sanitization</p>
+                </div>
+            </div>
+            <div class="header__right">
+                <div class="trust-score">
+                    <span class="trust-score__icon">🛡️</span>
+                    <span class="trust-score__value" id="trust-score">850</span>
+                </div>
+                <button class="settings" aria-label="Settings">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z" stroke="currentColor" stroke-width="1.5"/>
+                        <path d="M19.4 15.3a7.98 7.98 0 0 0 .05-6.6l1.76-1.02-1.5-2.6-1.98.76a8 8 0 0 0-5.46-2.28V1H11v1.96a7.99 7.99 0 0 0-5.46 2.28l-1.98-.76-1.5 2.6L2.82 8.7a8.02 8.02 0 0 0 0 6.6l-1.76 1.02 1.5 2.6 1.98-.76A8 8 0 0 0 11 20.99V23h2.27v-2.01a8 8 0 0 0 5.46-2.28l1.98.76 1.5-2.6-1.82-1.07Z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </header>
+
+        <section class="device-info">
+            <div class="device-info__content">
+                <div class="device-info__main">
+                    <h3 id="device-name">Windows PC - Workstation</h3>
+                    <p class="device-info__os" id="device-os">Windows 11 Pro 22H2</p>
+                </div>
+                <div class="device-info__storage">
+                    <div class="storage-bar">
+                        <div class="storage-bar__fill" style="width: 68%"></div>
+                    </div>
+                    <span class="storage-text" id="storage-info">2.1 TB used of 3.0 TB</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="mode-tabs">
+            <button class="tab tab--active" data-mode="basic">Basic Mode</button>
+            <button class="tab" data-mode="advanced">Advanced Mode</button>
+        </section>
+
+        <main class="app__content">
+            <div class="mode-content" id="basic-mode">
+                <section class="actions">
+                    <button class="action-card action-card--primary" id="btn-complete">
+                        <span class="action-card__icon" aria-hidden="true">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M12 3l2.09 4.23L19 8.27l-3.5 3.41.83 4.82L12 14.77 7.67 16.5l.83-4.82L5 8.27l4.91-1.04L12 3Z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                        <span class="action-card__text">
+                            <strong>Complete Reset</strong>
+                            <small>One‑click secure full wipe</small>
+                        </span>
+                        <span class="action-card__chev" aria-hidden="true">→</span>
+                    </button>
+                </section>
+
+                <section class="security-options" id="reset-options-section">
+                    <div class="security-option" data-security="standard">
+                        <div class="radio-input">
+                            <input type="radio" name="security-level" value="standard" checked>
+                        </div>
+                        <div class="security-header">
+                            <span class="security-level security-level--basic">🟢 Basic</span>
+                            <h3 class="security-title">Standard Windows Reset</h3>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-detail">
+                                <span class="security-detail__icon">⏱️</span>
+                                <span>Time: 30-60 minutes</span>
+                            </div>
+                            <div class="security-detail">
+                                <span class="security-detail__icon">🔓</span>
+                                <span>Recovery: Possible with forensic tools</span>
+                            </div>
+                            <div class="security-detail">
+                                <span class="security-detail__icon">📋</span>
+                                <span>Basic Windows reset with standard file deletion</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="security-option" data-security="professional">
+                        <div class="radio-input">
+                            <input type="radio" name="security-level" value="professional">
+                        </div>
+                        <div class="security-header">
+                            <span class="security-level security-level--professional">🟡 Professional</span>
+                            <h3 class="security-title">Secure Reset + Reinstall</h3>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-detail">
+                                <span class="security-detail__icon">⏱️</span>
+                                <span>Time: 2-4 hours</span>
+                            </div>
+                            <div class="security-detail">
+                                <span class="security-detail__icon">🔒</span>
+                                <span>Recovery: Extremely difficult</span>
+                            </div>
+                            <div class="security-detail">
+                                <span class="security-detail__icon">📋</span>
+                                <span>Professional sanitization followed by Windows reinstall</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="security-option" data-security="enterprise">
+                        <div class="radio-input">
+                            <input type="radio" name="security-level" value="enterprise">
+                        </div>
+                        <div class="security-header">
+                            <span class="security-level security-level--enterprise">🔴 Military/Enterprise</span>
+                            <h3 class="security-title">Maximum Security Wipe + Reinstall</h3>
+                        </div>
+                        <div class="security-details">
+                            <div class="security-detail">
+                                <span class="security-detail__icon">⏱️</span>
+                                <span>Time: 4-8 hours</span>
+                            </div>
+                            <div class="security-detail">
+                                <span class="security-detail__icon">🔒</span>
+                                <span>Recovery: Cryptographically impossible</span>
+                            </div>
+                            <div class="security-detail">
+                                <span class="security-detail__icon">📋</span>
+                                <span>Military-grade sanitization + complete system rebuild</span>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="progress-section" id="progress-section" style="display: none;">
+                    <div class="progress-container">
+                        <div class="circular-progress">
+                            <svg class="progress-ring" width="200" height="200">
+                                <defs>
+                                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                        <stop offset="0%" style="stop-color:#7a5cff;stop-opacity:1" />
+                                        <stop offset="100%" style="stop-color:#20c6b7;stop-opacity:1" />
+                                    </linearGradient>
+                                </defs>
+                                <circle class="progress-ring__circle" stroke="#2c3138" stroke-width="8" fill="transparent" r="90" cx="100" cy="100"/>
+                                <circle class="progress-ring__progress" stroke="url(#gradient)" stroke-width="8" fill="transparent" r="90" cx="100" cy="100" stroke-dasharray="565.48" stroke-dashoffset="565.48"/>
+                            </svg>
+                            <div class="progress-content">
+                                <div class="progress-icon">🔒</div>
+                                <div class="progress-text" id="progress-text">Preparing wipe...</div>
+                                <div class="progress-stats" id="progress-stats">Sector 0 of 10,000</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <div class="mode-content" id="advanced-mode" style="display: none;">
+                <section class="actions">
+                    <button class="action-card action-card--secondary" id="btn-manual">
+                        <span class="action-card__icon" aria-hidden="true">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M4 6h16M4 12h10M4 18h7" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+                            </svg>
+                        </span>
+                        <span class="action-card__text">
+                            <strong>Manual File Selection</strong>
+                            <small>Select specific files for secure deletion</small>
+                        </span>
+                        <span class="action-card__chev" aria-hidden="true">→</span>
+                    </button>
+                </section>
+
+                <section class="file-browser" id="file-browser" style="display: none;">
+                    <div class="file-browser-header">
+                        <div>
+                            <h3 class="file-browser-title">File Browser</h3>
+                            <p class="file-browser-path" id="current-path">C:\</p>
+                        </div>
+                        <div class="file-browser-controls">
+                            <button class="file-browser-btn" id="btn-select-all">Select All</button>
+                            <button class="file-browser-btn" id="btn-clear-selection">Clear</button>
+                            <button class="file-browser-btn" id="btn-show-selected">Show Selected</button>
+                        </div>
+                    </div>
+                    
+                    <div class="file-list" id="file-list">
+                        <!-- Files will be populated here by JavaScript -->
+                    </div>
+                    
+                    <div class="file-browser-footer">
+                        <div class="selected-count" id="selected-count">0 files selected</div>
+                        <button class="file-browser-btn" id="btn-up-directory">↑ Up</button>
+                    </div>
+                </section>
+
+                <section class="algorithm-selection" id="algorithm-selection" style="display: none;">
+                    <h3 class="algorithm-title">Select Wiping Algorithm</h3>
+                    <div class="algorithm-options">
+                        <div class="algorithm-option" data-algorithm="NIST_CLEAR">
+                            <h4 class="algorithm-name">NIST 800-88 Clear (1-pass)</h4>
+                            <p class="algorithm-desc">Single cryptographic overwrite (recommended for SSDs)</p>
+                            <div class="algorithm-details">Fast execution, cryptographically secure</div>
+                        </div>
+                        <div class="algorithm-option" data-algorithm="DOD_3PASS">
+                            <h4 class="algorithm-name">DoD 5220.22-M (3-pass)</h4>
+                            <p class="algorithm-desc">Three-pass overwrite (zeros, ones, random)</p>
+                            <div class="algorithm-details">Traditional standard for HDDs</div>
+                        </div>
+                        <div class="algorithm-option" data-algorithm="GUTMANN_35">
+                            <h4 class="algorithm-name">Gutmann Method (35-pass)</h4>
+                            <p class="algorithm-desc">Maximum security 35-pass overwrite</p>
+                            <div class="algorithm-details">Very time-consuming, maximum security</div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="certificate" id="advanced-controls" style="display: none;">
+                    <div class="certificate__status">
+                        <span class="badge">📝</span>
+                        <div>
+                            <h3 class="certificate__title">Ready for Secure Deletion</h3>
+                            <p class="certificate__desc" id="deletion-summary">0 files selected for deletion</p>
+                        </div>
+                    </div>
+                    <button class="cta" id="btn-start-advanced-wipe">Start Secure Deletion</button>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="certificate-modal" style="display: none;">
+        <div class="modal__content">
+            <div class="modal__header">
+                <h2>Wipe Certificate</h2>
+                <button class="modal__close">&times;</button>
+            </div>
+            <div class="certificate-preview">
+                <div class="certificate-preview__header">
+                    <div class="certificate-preview__logo">🔒</div>
+                    <div class="certificate-preview__title">ClearVault Data Sanitization Certificate</div>
+                    <div class="certificate-preview__id" id="certificate-id">ID: CERT-1234567890</div>
+                </div>
+                <div class="certificate-preview__body">
+                    <div class="certificate-field">
+                        <label>Date:</label>
+                        <span id="certificate-date">November 15, 2023</span>
+                    </div>
+                    <div class="certificate-field">
+                        <label>Device:</label>
+                        <span id="certificate-device">Windows PC - Workstation</span>
+                    </div>
+                    <div class="certificate-field">
+                        <label>Method:</label>
+                        <span id="certificate-method">NIST 800-88 Clear</span>
+                    </div>
+                    <div class="certificate-field">
+                        <label>Status:</label>
+                        <span id="certificate-status">Successfully Completed</span>
+                    </div>
+                    <div class="certificate-field">
+                        <label>Signature:</label>
+                        <span class="signature" id="certificate-signature">0x1a2b3c4d5e6f7890</span>
+                    </div>
+                </div>
+                <div class="certificate-preview__footer">
+                    <button class="btn btn--secondary" id="btn-export-pdf">Export PDF</button>
+                    <button class="btn" id="btn-close-certificate">Done</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>
