@@ -1,2 +1,192 @@
-# ClearVault
-ClearVault is a dual-interface (Web + CLI) educational data sanitization suite designed to demonstrate and execute secure data deletion techniques. The tool is aligned with core industry standards, including NIST SP 800-88 Rev. 1, DoD 5220.22-M (3-Pass), and the Gutmann Method (35-Pass).
+# 🔒 ClearVault — Enterprise-Grade Data Sanitization & Compliance Tool
+
+[![Python Version](https://img.shields.io/badge/python-3.8%2B-blue.svg)](https://www.python.org/)
+[![Flask](https://img.shields.io/badge/framework-Flask-lightgrey.svg)](https://flask.palletsprojects.com/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](#license--educational-disclaimer)
+[![Compliance](https://img.shields.io/badge/compliance-NIST%20800--88%20|%20DoD%205220.22--M-orange.svg)](#wiping-algorithms-explained)
+
+**ClearVault** is a dual-interface (Web + CLI) educational data sanitization suite designed to demonstrate and execute secure data destruction techniques. Developed using a robust Python Flask backend and a modern, glassmorphic HTML/CSS/JavaScript web interface, ClearVault aligns with cybersecurity and data privacy compliance standards such as **NIST SP 800-88 Rev. 1**, **DoD 5220.22-M (3-Pass)**, and the **Gutmann Method (35-Pass)**.
+
+It provides a safe, interactive playground with **Test Mode** (isolated mock file directories) and **Dry Run Mode** (logical simulations) to help security enthusiasts, students, and compliance managers understand data lifecycle management without risking real-world data loss.
+
+---
+
+## 🌟 Key Features
+
+### 1. Wiping Algorithms Suite
+*   **NIST SP 800-88 Rev. 1 Clear (1-Pass):** Overwrites sectors with cryptographically secure pseudo-random bytes. This single-pass procedure is highly recommended for modern Solid State Drives (SSDs) because SSD wear leveling makes multi-pass algorithms ineffective and structurally damaging.
+*   **DoD 5220.22-M (3-Pass):** A legacy military standard that overwrites sectors with zeros, then ones, followed by a final pass of random characters, verifying the write after each step. Optimized for hard disk drives (HDDs).
+*   **Gutmann Method (35-Pass):** A comprehensive 35-pass overwrite sequence designed to secure older magnetic storage media (legacy HDDs) against magnetic force microscopy recovery.
+
+### 2. Dual User Interface (Web + CLI)
+*   **Glassmorphic Web UI:** A state-of-the-art interactive dashboard styled with modern typography, harmonic dark themes, micro-animations, dynamic circular progress indicators, and visual storage metrics.
+*   **Interactive CLI Console:** A complete text-based command-line menu featuring directory navigation, system diagnostic assessments, unit test suites, and certificate validation.
+
+### 3. Integrated Audit & Verification Logs
+*   **JSON Deletion Reports:** Automatically records the before-and-after cryptographic checksums (**SHA-256**) of every targeted file, verifying successful sanitization.
+*   **PDF Certificates of Secure Data Deletion:** Generates publication-ready PDF certificates via `reportlab`, complete with validation codes, unique certificate IDs, device details, and verified hash tables.
+*   **Validation Authority System:** A validation engine allowing users to enter a generated certificate's validation code (e.g., `EDU-XXXXXX-YYYYYYYY`) to authenticate its origin and integrity.
+
+### 4. Advanced Reset & Reinstallation Modes
+*   **Standard Windows Reset:** Integrates with system-level commands (`systemreset.exe -factoryreset`) to clean drives and restore Windows.
+*   **Secure Reset + Reinstall:** Wipes user profiles securely using Sysinternals `sdelete64.exe` before initiating a Windows factory reset.
+*   **Maximum Security Wipe + Reinstall:** Uses military-grade overwrites on drive volumes before triggering a complete system rebuild.
+
+### 5. Multi-Level Safety Controls
+*   **Test Mode:** Automatically sets up an isolated sandbox directory (`test_deletion_files/`) containing mock files (`small_test.txt`, `medium_test.txt`, `binary_test.dat`, etc.) to safely test deletion procedures.
+*   **Dry Run Mode (Simulation):** Simulates byte-level overwriting, hash changes, and file removal without writing to the disk, protecting system files during demonstrations.
+*   **Fail-Safe Controls:** Verifies administrator permissions, inspects available disk space, and checks battery levels (aborting operations if a laptop is not plugged in) to prevent corruption from sudden power loss.
+
+---
+
+## 📂 Project Architecture
+
+```plaintext
+clear-main10/
+├── app.py                      # Flask Web Application entry point & API Controller
+├── backend.py                  # Core Sanitization Engine, CLI Menu, & API routes logic
+├── sdelete64.exe               # Sysinternals secure delete binary for Windows
+├── templates/
+│   └── index.html              # Modern, glassmorphic single-page frontend
+├── static/
+│   └── script.js               # Frontend controller, API bridge, and UI animations
+├── test_deletion_files/        # Autogenerated directory for safe evaluation (Test Mode)
+├── educational_deletion_report_*.json   # Generated raw compliance JSON reports
+└── Educational_Certificate_*.pdf        # Professional PDF data sanitization certificates
+```
+
+### Components Walkthrough
+
+*   **`backend.py`**: The heavy lifter containing the `CompleteSanitizationTool` class. It manages system info gathering, disk calculations, CLI terminal rendering, the implementation of raw binary file overwrites (`_overwrite_file`), PDF assembly via `reportlab`, and validation code generation.
+*   **`app.py`**: The web service boundary. It loads the `CompleteSanitizationTool` engine and wraps its features into a JSON API, exposing endpoints for directory listing, file selection, secure wiping, reset commands, and PDF downloads.
+*   **`templates/index.html` & `static/script.js`**: A fast, responsive user interface implementing custom CSS animations, storage space bars, dynamic trust-score calculations (which react to security levels), a native folder browser, and modal overlays to view deletion certificates.
+
+---
+
+## 🛠️ Installation & Setup
+
+### Prerequisites
+*   **Python 3.8 or higher**
+*   **Operating System**: Windows (required for system reset operations and `sdelete64.exe` integration; basic CLI/Web features run on macOS/Linux).
+*   **Administrator Privileges** (required for system-level drive sanitization and factory reset triggers).
+
+### Step-by-Step Installation
+1.  **Clone the Repository:**
+    ```bash
+    git clone https://github.com/your-username/ClearVault.git
+    cd ClearVault
+    ```
+
+2.  **Create and Activate a Virtual Environment:**
+    ```bash
+    python -m venv venv
+    
+    # On Windows:
+    venv\Scripts\activate
+    # On macOS/Linux:
+    source venv/bin/activate
+    ```
+
+3.  **Install Required Dependencies:**
+    ```bash
+    pip install flask psutil reportlab
+    ```
+
+---
+
+## 🚀 Running the Application
+
+ClearVault can be run in two modes: the command-line interface or the web application.
+
+### Mode A: Command Line Interface (CLI)
+To run the interactive CLI terminal application:
+```bash
+python backend.py
+```
+You will be prompted with the educational disclaimer. Press **Enter** to access the CLI main menu:
+```plaintext
+======================================================================
+CLEARVAULT - EDUCATIONAL DATA SANITIZATION TOOL
+======================================================================
+Status: LIVE MODE | DESTRUCTIVE MODE | USER
+
+SANITIZATION OPTIONS:
+1. Manual File Selection & Deletion
+2. Standard System Reset
+3. Secure System Reset
+4. Maximum Security Wipe
+
+ANALYSIS & TESTING:
+5. System Analysis
+6. Create Test Environment
+7. Run Unit Tests
+
+CERTIFICATE MANAGEMENT:
+8. View Certificates
+9. Generate Sample Certificate
+10. Certificate Validation
+
+SETTINGS:
+11. Toggle Test Mode
+12. Toggle Dry Run Mode
+13. Help & Documentation
+14. Exit
+```
+
+### Mode B: Web Application (Flask Server)
+To spin up the web interface server:
+```bash
+python app.py
+```
+*Alternative command:*
+```bash
+python backend.py --serve
+```
+
+Once running, open your web browser and navigate to:
+```plaintext
+http://127.0.0.1:5000
+```
+This launches the web dashboard, providing a visual browser to select files, toggle modes, check your system's drive metrics, and download generated certificates.
+
+---
+
+## 🔬 Wiping Algorithms Explained
+
+| Algorithm | Passes | Best Suited For | Technical Mechanism |
+| :--- | :---: | :--- | :--- |
+| **NIST SP 800-88 Clear** | 1 | Modern SSDs, Flash Drives | Writes a single pass of pseudo-random data across all addressable sectors. Avoids multiple writes to protect the lifespan of SSD flash cells. |
+| **DoD 5220.22-M** | 3 | Magnetic HDDs | **Pass 1:** Overwrites all addressable locations with binary zeros (`0x00`).<br>**Pass 2:** Overwrites with binary ones (`0xFF`).<br>**Pass 3:** Overwrites with random character patterns. |
+| **Gutmann Method** | 35 | Legacy Magnetic HDDs | Writes a sequence of 35 passes: 4 random passes, 27 specific patterns chosen to target legacy hard drives using MFM/RLL encoding, and 4 final random passes. |
+
+### Cryptographic Hash Verification
+During secure deletion, ClearVault performs a two-step validation:
+1.  **Before-Wipe SHA-256:** It reads the target file and calculates its unique cryptographic signature.
+2.  **After-Wipe SHA-256:** It writes the sanitization patterns, flushes the system buffers using `os.fsync()`, and computes the hash of the overwritten file sector *before* deleting the file reference from the system filesystem directory structure.
+The mismatch between the two hashes mathematically proves that the original data has been replaced.
+
+---
+
+## 🔒 Security & Safety Controls
+
+To ensure ClearVault cannot be used to accidentally destroy critical files, several protective constraints are compiled into the execution layer:
+
+*   **Dry Run Guard:** In Dry Run Mode (`dry_run_mode = True`), operations mimic complete wipes and generate reports/certificates, but the files are left intact.
+*   **Verification Phrases:** Destructive actions require the user to type exactly `DELETE` in the CLI or confirm through a confirmation dialog in the web UI.
+*   **Power Check:** For safety, live operations query battery states. If a laptop is running on battery power, the tool blocks the sanitization process to prevent system corruption that could result from a power cut mid-write.
+*   **System Space Verification:** System resets check if the drive has at least 2 GB of free space to perform cache movements.
+
+---
+
+## ⚖️ License & Educational Disclaimer
+
+### Educational Purpose Notice
+> [!IMPORTANT]
+> ClearVault is developed and shared strictly for educational and training purposes. The software features components capable of **irreversible, permanent file destruction**. Always verify that the application is operating in **Test Mode** or **Dry Run Mode** when performing training exercises. The authors are not responsible for any accidental data loss, hardware wear, or compliance breaches resulting from the use of this software.
+
+### Regulatory Alignment Reference
+*   **GDPR (EU) Article 17:** Supports compliance evidence for the *"Right to be Forgotten"* by producing verified destruction reports.
+*   **HIPAA / PCI DSS / SOX:** Generates PDF Certificates of Destruction, satisfying data retirement audit requirements for organizations handling protected health information or credit card numbers.
+
+### License
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
